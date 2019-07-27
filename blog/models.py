@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 # Create your models here.
 
+
 class Tag(models.Model):
 
     title = models.CharField(max_length=150) 
@@ -16,9 +17,13 @@ class Tag(models.Model):
 
 class Tujruba(models.Model):
 
-    photo = models.ImageField(upload_to = 'images')
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    photo = models.ImageField(upload_to = 'media/images')
     title = models.CharField(max_length=150) 
     description = models.TextField(max_length=999)
+    publish_date = models.DateTimeField(default=timezone.now)
+    stars = models.IntegerField()
+    likes = models.IntegerField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -28,20 +33,20 @@ class Tujruba(models.Model):
 
 class Comment(models.Model):
     tujruba = models.ForeignKey('Tujruba', on_delete=models.CASCADE)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField(max_length=300)
     created_date = models.DateTimeField(default=timezone.now)
     likes = models.IntegerField()
 
     def __str__(self):
 
-        return self.author.username + ' on ' + self.tujruba.title
+        return self.user.username + ' on ' + self.tujruba.title
 
 
 
 class Profile(models.Model):
-    photo = models.ImageField(upload_to = 'images')
-    name = models.CharField(max_length=150)
+    photo = models.ImageField(upload_to = 'images', blank=True)
+    name = models.CharField(max_length=150, blank=True)
     bio = models.TextField(default='', blank=True)
     job = models.CharField(max_length=150, default='', blank=True)
     age = models.CharField(max_length=150, default='', blank=True)
@@ -70,8 +75,3 @@ def create_profile(sender, **kwarg):
 post_save.connect(create_profile, sender=User)
 
 
-
-
-class Star(models.Model):
-    tujruba = models.ForeignKey('Tujruba', on_delete=models.CASCADE)
-    user = models.ForeignKey('Profile', on_delete=models.CASCADE)
